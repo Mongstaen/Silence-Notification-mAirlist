@@ -1,0 +1,95 @@
+//////////////////////////////////
+// Silence Notification Script ///
+// Written by Thomas Mongstad  ///
+//////////////////////////////////
+
+const  
+    DEBUG =                 False;  // Set to false in production
+    LOGGING =               False;   // Reccomending true in production
+
+    // NTFY Logging and Debugging
+    NTFY_LOG =              True; // True if set up, false if not.
+    LOG_SEARCH_PHRASE =     'Silence Notification:';
+    NTFY_LOG_ENDPOINT =     '';
+
+var
+    sl:                     TStringList;
+    STUDIO:                 string;
+
+// Custom procedures
+procedure WriteLog(message: String);
+begin
+    if (LOGGING) then
+    begin
+        SystemLog(LOG_SEARCH_PHRASE + ' ' + STUDIO + ': ' + message);
+    end;
+    if (NTFY_LOG) then
+    begin
+        if (NTFY_LOG_ENDPOINT = '') then begin
+            exit;
+        end; 
+        ShellExecuteHidden('curl', '-d "'+ LOG_SEARCH_PHRASE + ' ' + STUDIO + ' ' + message + '" ' + NTFY_LOG_ENDPOINT);
+    end;
+end;
+
+procedure WriteScriptDebug(message: String);
+begin
+    if (DEBUG) then
+    begin
+        SystemLog(LOG_SEARCH_PHRASE + ' DEBUG ' + STUDIO + ': ' + message);
+    end;
+    if (NTFY_LOG) then
+    begin
+        if (NTFY_DEBUG_ENDPOINT = '') then begin
+            exit;
+        end; 
+        ShellExecuteHidden('curl', '-d "' + STUDIO + ' ' + message + '" ' + NTFY_DEBUG_ENDPOINT);
+    end;
+end;
+
+// mAirlist procedures
+procedure OnLoad;
+begin
+    SystemLog('Loaded Silence Notification Script');
+
+    sl := TStringList.Create;
+    try
+        // From C:/Program Files (x86)/Mairlist directory
+        sl.LoadFromFile('node.txt');
+        STUDIO := sl[0];
+        WriteScriptDebug('Current node is '+STUDIO);
+    except
+        WriteScriptDebug('Could not read node.txt file');
+        
+    finally
+        sl.Free;
+    end;
+end;
+
+procedure OnOnAir;
+begin
+    STUDIO_ON_AIR_STATUS := True;
+end;
+
+procedure OnOffAir;
+begin
+    STUDIO_ON_AIR_STATUS := False;
+end;
+
+procedure OnExecuteCommand(Command: string);
+begin    
+    if Command = 'SILENCE_DETECTED' then begin
+        if (STUDIO_ON_AIR_STATUS) then begin
+            WriteLog('Silence has been detected.');        
+        end;
+    end;
+
+    if Command = 'SOUND_DETECTED' then begin
+        if (STUDIO_ON_AIR_STATUS) then begin
+        WriteLog('Sound has been detected.');
+        end;
+    end;
+end;
+
+begin    
+end.
