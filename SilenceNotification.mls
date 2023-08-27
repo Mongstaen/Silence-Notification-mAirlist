@@ -40,10 +40,10 @@ begin
     end;
     if (NTFY_LOG) then
     begin
-        if (NTFY_DEBUG_ENDPOINT = '') then begin
+        if (NTFY_LOG_ENDPOINT = '') then begin
             exit;
         end; 
-        ShellExecuteHidden('curl', '-d "' + STUDIO + ' ' + message + '" ' + NTFY_DEBUG_ENDPOINT);
+        ShellExecuteHidden('curl', '-d "' + STUDIO + ' ' + message + '" ' + NTFY_LOG_ENDPOINT);
     end;
 end;
 
@@ -51,7 +51,6 @@ end;
 procedure OnLoad;
 begin
     SystemLog('Loaded Silence Notification Script');
-
     sl := TStringList.Create;
     try
         // From C:/Program Files (x86)/Mairlist directory
@@ -66,28 +65,18 @@ begin
     end;
 end;
 
-procedure OnOnAir;
-begin
-    STUDIO_ON_AIR_STATUS := True;
-end;
-
-procedure OnOffAir;
-begin
-    STUDIO_ON_AIR_STATUS := False;
-end;
-
 procedure OnExecuteCommand(Command: string);
 begin    
     if Command = 'SILENCE_DETECTED' then begin
-        if (STUDIO_ON_AIR_STATUS) then begin
-            WriteLog('Silence has been detected.');        
-        end;
+        WriteLog('Silence has been detected.');        
     end;
 
     if Command = 'SOUND_DETECTED' then begin
-        if (STUDIO_ON_AIR_STATUS) then begin
         WriteLog('Sound has been detected.');
-        end;
+    end;
+
+    if Command = 'EMPTY_PLAYLIST' then begin
+        WriteLog('Playlist ran empty during automation..');        
     end;
 end;
 
